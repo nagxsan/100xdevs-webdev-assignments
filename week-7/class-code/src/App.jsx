@@ -1,51 +1,68 @@
-import { useRecoilValue, useSetRecoilState, RecoilRoot } from 'recoil'
-import { countAtom } from './store/atoms/count.js'
-import { evenSelector } from "./store/selectors/evenSelector.js"
+import { useState } from "react"
+import { useRecoilValue, useSetRecoilState, RecoilRoot, useRecoilState } from 'recoil'
+import { todoAtom } from "./store/atoms/todos.js"
+import { filterTodos } from "./store/atoms/filterTodos.js"
+import { filterTodosSelector } from "./store/selectors/filterTodosSelector.js"
 
 export default function App() {
 
   return (
     <RecoilRoot>
-      <Count />
+      <TodoDetails />
+      <FilterTodo />
+      <DisplayTodos />
     </RecoilRoot>
   )
 }
 
-function Count() {
-  console.log("re-rendering")
+function TodoDetails() {
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+
+  const addTodo = useSetRecoilState(todoAtom)
+
+  const handleButtonClick = () => {
+    setTitle('')
+    setDescription('')
+    addTodo(todo => [...todo, {title, description}])
+  }
+
   return (
     <div>
-      <CountRenderer />
-      <Buttons />
-      <EvenCountRenderer />
+      <div>
+        <span>Enter title: </span>
+        <input value={title} onChange={(e) => setTitle(e.target.value)} />
+      </div>
+      <div>
+        <span>Enter description: </span>
+        <input value={description} onChange={(e) => setDescription(e.target.value)} />
+      </div>
+      <button onClick={handleButtonClick}>
+        Add Todo
+      </button>
     </div>
   )
 }
 
-function CountRenderer() {
-  const count = useRecoilValue(countAtom)
+function FilterTodo() {
+  const [filter, setFilter] = useRecoilState(filterTodos)
   return (
     <div>
-      {count}
+      <input value={filter} onChange={(e) => setFilter(e.target.value)} />
     </div>
   )
 }
 
-function Buttons() {
-  const setCount = useSetRecoilState(countAtom)
+function DisplayTodos() {
+  const todos = useRecoilValue(filterTodosSelector)
   return (
     <div>
-      <button onClick={() => setCount(count => count + 1)}>Increment</button>
-      <button onClick={() => setCount(count => count - 1)}>Decrement</button>
-    </div>
-  )
-}
-
-function EvenCountRenderer() {
-  const isEven = useRecoilValue(evenSelector)
-  return (
-    <div>
-      {isEven ? "This is even" : ""}
+      {todos.map((todo, idx) => (
+        <div key={idx}>
+          <div>Title: {todo?.title}</div>
+          <div>Description: {todo?.description}</div>
+        </div>
+      ))}
     </div>
   )
 }
